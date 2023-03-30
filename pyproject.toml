@@ -9,8 +9,7 @@ packages = [{include = "ow_log_parser"}]
 [tool.poetry.dependencies]
 python = "^3.11"
 sqlalchemy = "^2.0.7"
-psycopg = "^3.1.8"
-psycopg2 = "^2.9.5"
+psycopg2-binary = "^2.9.5"
 
 [tool.poetry.scripts]
 main = "ow_log_parser:main"

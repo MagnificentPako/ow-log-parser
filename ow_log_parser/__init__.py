@@ -4,6 +4,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy import create_engine
 import os
+import datetime
 
 event_data = {
     'match_start': [ 'match_time', 'map_name', 'map_type', 'team_1', 'team_2' ],
@@ -61,6 +62,7 @@ class MatchEvent(Base):
     event_type: Mapped[str]
     match_id: Mapped[int]
     event = mapped_column(JSONB)
+    timestamp: Mapped[datetime.datetime]
 
 def mkEngine(url):
     return create_engine(url, echo=False)
@@ -115,12 +117,12 @@ def create_fake_match(s):
         s.add(evt)
     s.commit()
 
-def insert_parsed(engine, parsed):
+def insert_parsed(engine, parsed, date):
     with Session(engine) as s:
         match_id = s.query(func.max(MatchEvent.match_id)).scalar()+1
         for t in parsed:
             for e in parsed[t]:
-                evt = MatchEvent(event_type = t, event = e['data'], match_id=match_id)
+                evt = MatchEvent(event_type = t, event = e['data'], match_id=match_id, timestamp=date)
                 s.add(evt)
         s.commit()
 
@@ -137,8 +139,9 @@ def main():
         filename = os.fsdecode(file)
         if filename.endswith('.txt'):
             path = os.path.join(directory, file)
+            date = datetime.datetime.strptime(filename[4:-5],"%Y-%m-%d-%H-%M-%S")
             parsed = parse_file(path)
-            insert_parsed(engine, parsed)
+            insert_parsed(engine, parsed, date)
 
 if __name__ == '__main__':
     main()
